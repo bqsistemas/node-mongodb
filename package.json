@@ -1,0 +1,29 @@
+{
+  "name": "mongodb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "check": "eslint app.js --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bqsistemas/node-mongodb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bqsistemas/node-mongodb/issues"
+  },
+  "homepage": "https://github.com/bqsistemas/node-mongodb#readme",
+  "dependencies": {
+    "mongodb": "^4.7.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.17.0",
+    "nodemon": "^2.0.16"
+  }
+}
