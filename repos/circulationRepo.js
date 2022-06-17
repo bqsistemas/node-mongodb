@@ -1,4 +1,4 @@
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectID } = require('mongodb');
 
 function circulationRepo() {
   const url = 'mongodb://bqsistemas:barrantes@127.0.0.1:27017';
@@ -67,8 +67,7 @@ function circulationRepo() {
         await client.connect();
         const db = client.db(dbName);
         const addedItem = await db.collection('newspapers').insertOne(item);
-
-        resolve(addedItem.ops[0]);
+        resolve(addedItem);
       } catch (error) {
         reject(error);
       } finally {
@@ -84,8 +83,7 @@ function circulationRepo() {
         await client.connect();
         const db = client.db(dbName);
         const updatedItem = await db.collection('newspapers')
-          .findOneAndReplace({_id: ObjectID(id)}, newItem, {returnOriginal:false});
-        
+          .findOneAndReplace({_id: ObjectID(id)}, newItem, {returnDocument: "after"});
         resolve(updatedItem.value);
       } catch (error) {
         reject(error);
@@ -130,7 +128,57 @@ function circulationRepo() {
     })
   }
 
-  return { loadData, get, getById, add, update, remove }
+  function averageFinalists(){
+    return new Promise(async (resolve, reject) => {
+      const client = new MongoClient(url);
+      try {
+        await client.connect();
+        const db = client.db(dbName);
+        const average = await db.collection('newspapers')
+          .aggregate([{ $group: 
+            {
+               _id:null, 
+               avgFinalists: { $avg: "$Pulitzer Prize Winners and Finalists, 1990-2014"}
+            }}]).toArray();
+        resolve(average[0].avgFinalists);
+        client.close();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  function averageFinalistsByChange(){
+    return new Promise(async (resolve, reject) => {
+      const client = new MongoClient(url);
+      try {
+        await client.connect();
+        const db = client.db(dbName);
+        const average = await db.collection('newspapers')
+          .aggregate([
+            {$project:{
+              "Newspaper": 1,
+              "Pulitzer Prize Winners and Finalists, 1990-2014":1,
+              "Change in Daily Circulation, 2004-2013":1,
+              overallChange: {
+                $cond: { if: { $gte: ["$Change in Daily Circulation, 2004-2013",0]}, then: "positive", else: "negative"}
+              } 
+            }},
+            { $group: 
+              {
+                 _id:"$overallChange", 
+                 avgFinalists: { $avg: "$Pulitzer Prize Winners and Finalists, 1990-2014"}
+              }}
+          ]).toArray();
+        resolve(average);
+        client.close();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  return { loadData, get, getById, add, update, remove, averageFinalists, averageFinalistsByChange }
 
 }
 

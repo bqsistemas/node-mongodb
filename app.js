@@ -44,12 +44,12 @@ async function main() {
           "Pulitzer Prize Winners and Finalists, 1990-2014": 0
         }
         const addedItem = await circulationRepo.add(newItem);
-        assert(addedItem._id)
+        assert(addedItem.insertedId)
         
         // update
-        const addedItemQuery = await circulationRepo.getById(addedItem._id);
+        const addedItemQuery = await circulationRepo.getById(addedItem.insertedId);
         assert.deepEqual(addedItemQuery, newItem)
-        const updatedItem = await circulationRepo.update(addedItem._id, {
+        const updatedItem = await circulationRepo.update(addedItem.insertedId, {
           "Newspaper": "My new paper",
           "Daily Circulation, 2004": 1,
           "Daily Circulation, 2013": 2,
@@ -60,15 +60,22 @@ async function main() {
         });
         assert.equal(updatedItem.Newspaper, "My new paper");
 
-        const newAddedItemQuery = await circulationRepo.getById(addedItem._id);
+        const newAddedItemQuery = await circulationRepo.getById(addedItem.insertedId);
         assert.equal(newAddedItemQuery.Newspaper, "My new paper");
 
         // delete
-        const removed = await circulationRepo.remove(addedItem._id);
+        const removed = await circulationRepo.remove(addedItem.insertedId);
         assert(removed);
-        const deletedItem = await circulationRepo.getById(addedItem._id);
+        const deletedItem = await circulationRepo.getById(addedItem.insertedId);
         assert.equal(deletedItem, null); 
         
+        //average
+        const avgFinalists = await circulationRepo.averageFinalists();
+        console.log("Average Finalists: " + avgFinalists);
+
+        // average by change
+        const avgByChange = await circulationRepo.averageFinalistsByChange();
+        console.log(avgByChange);
         
     } catch(error) {
         console.log(error)
